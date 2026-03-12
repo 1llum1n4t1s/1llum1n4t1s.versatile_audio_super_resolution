@@ -73,7 +73,7 @@ def load_openai_model(
                 f"File {model_path} is not a JIT archive. Loading as a state dict instead"
             )
             jit = False
-        state_dict = torch.load(model_path, map_location="cpu")
+        state_dict = torch.load(model_path, map_location="cpu", weights_only=False)
 
     if not jit:
         try:
