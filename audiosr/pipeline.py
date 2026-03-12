@@ -64,7 +64,7 @@ def make_batch_for_super_resolution(input_file, waveform=None, fbank=None):
     batch["lowpass_mel"] = lowpass_mel
 
     for k in batch.keys():
-        if type(batch[k]) == torch.Tensor:
+        if isinstance(batch[k], torch.Tensor):
             batch[k] = torch.FloatTensor(batch[k]).unsqueeze(0)
 
     return batch, duration
@@ -248,11 +248,13 @@ def super_resolution_long_audio(
             window_contribution[-overlap_samples:] = fade_out
         overlap_contribution_map[:, :, start_sample:end_sample] += window_contribution.to(overlap_contribution_map.device)
 
-        # Clean up memory
+        # チャンク参照を解放
         del batch, processed_chunk
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+
+    # メモリ解放（ループ後に1回だけ実行）
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     # 7. Normalize the overlapping regions
     # Avoid division by zero in non-overlapping parts
