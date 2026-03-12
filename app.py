@@ -219,9 +219,13 @@ def convert_audio_for_gradio(audio):
         audio = audio.T
     return audio
 
+_model_cache = {}
+
 def inference(audio_file, model_name, guidance_scale, ddim_steps):
-    # Initialize the model
-    audiosr = build_model(model_name=model_name)
+    # モデルをキャッシュして毎回再ロードを回避
+    if model_name not in _model_cache:
+        _model_cache[model_name] = build_model(model_name=model_name)
+    audiosr = _model_cache[model_name]
     
     # Load the audio file with original number of channels
     audio, sr = librosa.load(audio_file, sr=48000, mono=False)

@@ -1,7 +1,3 @@
-from scipy.signal import butter, lfilter
-import torch
-from scipy import signal
-import librosa
 import numpy as np
 
 from scipy.signal import sosfiltfilt
@@ -159,22 +155,22 @@ def lowpass(data, highcut, fs, order=5, _type="butter"):
             + " should be type 1d time array, (samples,) , can not be (samples, 1)"
         )
 
-    if _type in "butter":
+    if _type == "butter":
         order = limit(order, high=10, low=2)
         return lowpass_filter(
             x=data, highcut=int(highcut), fs=fs, order=order, ftype="butter"
         )
-    elif _type in "cheby1":
+    elif _type == "cheby1":
         order = limit(order, high=10, low=2)
         return lowpass_filter(
             x=data, highcut=int(highcut), fs=fs, order=order, ftype="cheby1"
         )
-    elif _type in "ellip":
+    elif _type == "ellip":
         order = limit(order, high=10, low=2)
         return lowpass_filter(
             x=data, highcut=int(highcut), fs=fs, order=order, ftype="ellip"
         )
-    elif _type in "bessel":
+    elif _type == "bessel":
         order = limit(order, high=10, low=2)
         return lowpass_filter(
             x=data, highcut=int(highcut), fs=fs, order=order, ftype="bessel"
@@ -203,7 +199,7 @@ def bandpass(data, lowcut, highcut, fs, order=5, _type="butter"):
             + str(data.shape)
             + " should be type 1d time array, (samples,) , can not be (samples, 1)"
         )
-    if _type in "butter":
+    if _type == "butter":
         order = limit(order, high=10, low=2)
         return bandpass_filter(
             x=data,
@@ -213,7 +209,7 @@ def bandpass(data, lowcut, highcut, fs, order=5, _type="butter"):
             order=order,
             ftype="butter",
         )
-    elif _type in "cheby1":
+    elif _type == "cheby1":
         order = limit(order, high=10, low=2)
         return bandpass_filter(
             x=data,
@@ -225,7 +221,7 @@ def bandpass(data, lowcut, highcut, fs, order=5, _type="butter"):
         )
     # elif(_type in "cheby2"):
     #     return bandpass_filter(x=data,lowcut=int(lowcut),highcut=int(highcut), fs=fs, order=order,ftype="cheby2")
-    elif _type in "ellip":
+    elif _type == "ellip":
         order = limit(order, high=10, low=2)
         return bandpass_filter(
             x=data,
@@ -235,7 +231,7 @@ def bandpass(data, lowcut, highcut, fs, order=5, _type="butter"):
             order=order,
             ftype="ellip",
         )
-    elif _type in "bessel":
+    elif _type == "bessel":
         order = limit(order, high=10, low=2)
         return bandpass_filter(
             x=data,

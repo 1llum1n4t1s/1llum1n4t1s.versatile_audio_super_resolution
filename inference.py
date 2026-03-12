@@ -2,7 +2,6 @@ import gc
 import os
 import random
 import numpy as np
-from scipy.signal.windows import hann
 import soundfile as sf
 import torch
 from cog import BasePredictor, Input, Path
@@ -184,9 +183,10 @@ class Predictor(BasePredictor):
         filename = os.path.splitext(os.path.basename(input_file))[0]
         sf.write(f"{output_folder}/SR_{filename}.wav", data=waveform, samplerate=48000,  subtype="PCM_16")
         print(f"file created: {output_folder}/SR_{filename}.wav")
-        del self.audiosr, waveform
+        del waveform
         gc.collect()
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":

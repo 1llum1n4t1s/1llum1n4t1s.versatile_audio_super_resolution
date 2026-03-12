@@ -35,9 +35,9 @@ VERSION = "0.0.7"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "torch>=1.13.0",
-    "torchaudio>=0.13.0",
-    "torchvision>=0.14.0",
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0",
+    "torchvision>=0.15.0",
     "tqdm",
     "gradio",
     "pyyaml",
@@ -51,7 +51,7 @@ REQUIRED = [
     "unidecode",
     "phonemizer",
     "torchlibrosa>=0.0.9",
-    "transformers==4.30.2",
+    "transformers==4.49.0",
     "huggingface_hub",
     "progressbar",
     "ftfy",

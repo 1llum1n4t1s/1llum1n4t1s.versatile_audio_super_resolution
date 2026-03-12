@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 import os
 import librosa
 import torch
@@ -8,7 +7,6 @@ from einops import rearrange, repeat
 from contextlib import contextmanager
 from functools import partial
 from tqdm import tqdm
-from torchvision.utils import make_grid
 from audiosr.latent_diffusion.modules.encoders.modules import *
 
 from audiosr.latent_diffusion.util import (
@@ -31,7 +29,6 @@ from audiosr.latent_diffusion.modules.diffusionmodules.util import (
 from audiosr.latent_diffusion.models.ddim import DDIMSampler
 from audiosr.latent_diffusion.models.plms import PLMSSampler
 import soundfile as sf
-import os
 
 __conditioning_keys__ = {"concat": "c_concat", "crossattn": "c_crossattn", "adm": "y"}
 
@@ -56,7 +53,7 @@ class DDPM(nn.Module):
         beta_schedule="linear",
         loss_type="l2",
         ckpt_path=None,
-        ignore_keys=[],
+        ignore_keys=None,
         load_only_unet=False,
         monitor="val/loss",
         use_ema=True,
@@ -308,8 +305,10 @@ class DDPM(nn.Module):
                 # if context is not None:
                 #     print(f"{context}: Restored training weights")
 
-    def init_from_ckpt(self, path, ignore_keys=list(), only_model=False):
-        sd = torch.load(path, map_location="cpu")
+    def init_from_ckpt(self, path, ignore_keys=None, only_model=False):
+        if ignore_keys is None:
+            ignore_keys = []
+        sd = torch.load(path, map_location="cpu", weights_only=False)
         if "state_dict" in list(sd.keys()):
             sd = sd["state_dict"]
         keys = list(sd.keys())
@@ -513,6 +512,7 @@ class DDPM(nn.Module):
         n_imgs_per_row = len(samples)
         denoise_grid = rearrange(samples, "n b c h w -> b n c h w")
         denoise_grid = rearrange(denoise_grid, "b n c h w -> (b n) c h w")
+        from torchvision.utils import make_grid
         denoise_grid = make_grid(denoise_grid, nrow=n_imgs_per_row)
         return denoise_grid
 
@@ -651,7 +651,7 @@ class LatentDiffusion(DDPM):
         self.cond_stage_key_orig = cond_stage_key
         try:
             self.num_downs = len(first_stage_config.params.ddconfig.ch_mult) - 1
-        except:
+        except (AttributeError, TypeError):
             self.num_downs = 0
         if not scale_by_std:
             self.scale_factor = scale_factor
@@ -869,7 +869,7 @@ class LatentDiffusion(DDPM):
 
                 if cond_stage_key != "all":
                     xc = super().get_input(batch, cond_stage_key)
-                    if type(xc) == torch.Tensor:
+                    if isinstance(xc, torch.Tensor):
                         xc = xc.to(self.device)
                 else:
                     xc = batch
@@ -1231,7 +1231,7 @@ class LatentDiffusion(DDPM):
             if verbose
             else reversed(range(0, timesteps))
         )
-        if type(temperature) == float:
+        if isinstance(temperature, float):
             temperature = [temperature] * timesteps
 
         for i in iterator:
