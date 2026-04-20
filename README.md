@@ -1,93 +1,91 @@
 
-# AudioSR: Versatile Audio Super-resolution at Scale
+# AudioSR: 汎用オーディオ超解像
+
+> **本リポジトリは [haoheliu/versatile_audio_super_resolution](https://github.com/haoheliu/versatile_audio_super_resolution) のフォークです。**
+> PyTorch 2.6 / CUDA 12.4 対応、コード品質改善、AMD Radeon GPU (ROCm) 対応などを追加しています。
 
 [![arXiv](https://img.shields.io/badge/arXiv-2309.07314-brightgreen.svg?style=flat-square)](https://arxiv.org/abs/2309.07314)  [![githubio](https://img.shields.io/badge/GitHub.io-Audio_Samples-blue?logo=Github&style=flat-square)](https://audioldm.github.io/audiosr) [![Replicate](https://replicate.com/nateraw/audio-super-resolution/badge)](https://replicate.com/nateraw/audio-super-resolution)
 
-Pass your audio in, AudioSR will make it high fidelity! 
+音声を入力すると、AudioSR が高忠実度に変換します。
 
-Work on all types of audio (e.g., music, speech, dog, raining, ...) & all sampling rates.
+あらゆる種類の音声（音楽、音声、環境音など）、あらゆるサンプリングレートに対応しています。
 
-Share your thoughts/samples/issues in our discord channel: https://discord.gg/HWeBsJryaf
+![概要図](https://github.com/haoheliu/versatile_audio_super_resolution/blob/main/visualization.png?raw=true)
 
-![Image Description](https://github.com/haoheliu/versatile_audio_super_resolution/blob/main/visualization.png?raw=true)
+## 変更履歴
+- 2025-06-28: [LSD 計算の落とし穴デモ](example/lsd_calculation_pitfall/README.md)を追加。公平な Log Spectral Distance 評価におけるエネルギースケーリングの重要性を示します。
+- 2024-12-31: AudioSR のトレーニングコードを[こちら](https://drive.google.com/file/d/1BaZuHbk1AfURX7SvkaD5_ZWLwun-wdpW/view?usp=drive_link)で公開（参考用。コードは整理されていません）。
+- 2024-12-16: [AudioSR を正しく動作させるための重要事項](example/how_to_make_audiosr_work.md)を追加。
+![デモ失敗例](example/figs/demo-failure.png)
+- 2023-09-24: Replicate デモ追加（@nateraw）、Windows でのエラー修正、librosa 警告修正等（@ORI-Muchim）。
+- 2023-09-16: DC シフト問題の修正。デュレーションパディングバグの修正。デフォルト DDIM ステップ数を 50 に更新。
 
-## Change Log
-- 2025-06-28: Add [LSD calculation pitfall demonstration](example/lsd_calculation_pitfall/README.md) showing the importance of energy scaling for fair Log Spectral Distance evaluation.
-- 2024-12-31: The training code of AudioSR can be found [here](https://drive.google.com/file/d/1BaZuHbk1AfURX7SvkaD5_ZWLwun-wdpW/view?usp=drive_link) (For reference only. The code is not carefully organized.).
-- 2024-12-16: Add [Important things to know to make AudioSR work](example/how_to_make_audiosr_work.md).
-![demo-failure](example/figs/demo-failure.png)
-- 2023-09-24: Add replicate demo (@nateraw); Fix error on windows, librosa warning etc (@ORI-Muchim).  
-- 2023-09-16: Fix DC shift issue. Fix duration padding bug. Update default DDIM steps to 50.
+## Gradio デモ
 
-## Gradio Demo
+ローカルで Gradio デモを実行する手順:
 
-To run the Gradio demo locally:
+1. 依存関係をインストール: `pip install -r requirements.txt`
+2. アプリを起動: `python app.py`
+3. 表示された URL をブラウザで開く
 
-1. Install dependencies: `pip install -r requirements.txt` 
-2. Run the app: `python app.py`
-3. Open the URL displayed to view the demo
+## インストール
 
-## Commandline Usage
-
-## Installation
 ```shell
-# Optional
+# 推奨: conda 環境を作成
 conda create -n audiosr python=3.9; conda activate audiosr
-# Install AudioLDM
+
+# NVIDIA GPU の場合
+pip install -r requirements.txt
+
+# AMD Radeon GPU (ROCm) の場合
+pip install -r requirements-rocm.txt
+
+# または pip から直接インストール
 pip3 install audiosr==0.0.7
-# or
-# pip3 install git+https://github.com/haoheliu/versatile_audio_super_resolution.git
 ```
 
-## Usage
+## コマンドライン使用方法
 
-Process a list of files. The result will be saved at ./output by default.
+ファイルリストを一括処理（結果はデフォルトで `./output` に保存）:
 
 ```shell
 audiosr -il batch.lst
 ```
 
-Process a single audio file.
+単一ファイルを処理:
 ```shell
 audiosr -i example/music.wav
 ```
 
-Full usage instruction
+全オプション:
 
 ```shell
 > audiosr -h
 
 > usage: audiosr [-h] -i INPUT_AUDIO_FILE [-il INPUT_FILE_LIST] [-s SAVE_PATH] [--model_name {basic,speech}] [-d DEVICE] [--ddim_steps DDIM_STEPS] [-gs GUIDANCE_SCALE] [--seed SEED]
 
-optional arguments:
-  -h, --help            show this help message and exit
+オプション引数:
+  -h, --help            ヘルプメッセージを表示
   -i INPUT_AUDIO_FILE, --input_audio_file INPUT_AUDIO_FILE
-                        Input audio file for audio super resolution
+                        超解像を行う入力音声ファイル
   -il INPUT_FILE_LIST, --input_file_list INPUT_FILE_LIST
-                        A file that contains all audio files that need to perform audio super resolution
+                        超解像を行う音声ファイルのリストファイル
   -s SAVE_PATH, --save_path SAVE_PATH
-                        The path to save model output
+                        出力の保存先パス
   --model_name {basic,speech}
-                        The checkpoint you gonna use
+                        使用するチェックポイント
   -d DEVICE, --device DEVICE
-                        The device for computation. If not specified, the script will automatically choose the device based on your environment.
+                        計算デバイス。未指定の場合は環境に応じて自動選択
   --ddim_steps DDIM_STEPS
-                        The sampling step for DDIM
+                        DDIM のサンプリングステップ数
   -gs GUIDANCE_SCALE, --guidance_scale GUIDANCE_SCALE
-                        Guidance scale (Large => better quality and relavancy to text; Small => better diversity)
-  --seed SEED           Change this value (any integer number) will lead to a different generation result.
-  --suffix SUFFIX       Suffix for the output file
+                        ガイダンススケール（大 => 高品質・テキスト忠実度向上、小 => 多様性向上）
+  --seed SEED           生成結果を変更するシード値（任意の整数）
+  --suffix SUFFIX       出力ファイルのサフィックス
 ```
 
-
-## TODO
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/haoheliuP)
-
-- [ ] Add gradio demo.
-- [ ] Optimize the inference speed.
-
-## Cite our work
-If you find this repo useful, please consider citing: 
+## 引用
+本リポジトリが有用であれば、以下の引用をご検討ください:
 ```bibtex
 @inproceedings{liu2024audiosr,
   title={{AudioSR}: Versatile audio super-resolution at scale},
@@ -99,41 +97,40 @@ If you find this repo useful, please consider citing:
 }
 ```
 
-# Understanding the Impact of Cutoff Patterns on AudioSR Performance
+# カットオフパターンが AudioSR の性能に与える影響
 
-**AudioSR** is a powerful tool for audio super-resolution. However, its performance can be significantly influenced by the characteristics of the input data, especially the cutoff pattern. 
+**AudioSR** は強力なオーディオ超解像ツールですが、入力データの特性、特にカットオフパターンによって性能が大きく左右されます。
 
-## 🚩 When AudioSR May Fail
-1. **Input Audio with Unfamiliar Cutoff Patterns**  
-   If the input audio file contains a cutoff pattern that is **significantly different** from those used in training, AudioSR may fail to perform effectively.
-   
-2. **Input Audio with Severe Distortions**  
-   Strong distortions such as excessive noise or reverb can degrade the performance of AudioSR.
+## AudioSR が失敗するケース
+1. **不慣れなカットオフパターンを持つ入力音声**
+   入力音声のカットオフパターンがトレーニング時のものと**大きく異なる**場合、AudioSR は効果的に機能しない可能性があります。
 
-## ❓ Why Do Cutoff Patterns Have Such a Huge Impact on AudioSR?
-During training, our data was simulated using **low-pass filtering**. The model was not trained to handle other causes of high-frequency loss, such as MP3 compression. As a result, AudioSR struggles when encountering unfamiliar cutoff patterns.
+2. **深刻な歪みを持つ入力音声**
+   過度なノイズやリバーブなどの強い歪みは、AudioSR の性能を低下させます。
 
-For example, MP3 compression can introduce a cutoff pattern that looks like this:
+## なぜカットオフパターンがこれほど影響するのか？
+トレーニング時、データは**ローパスフィルタリング**によってシミュレートされました。MP3 圧縮など、高周波損失の他の原因に対してはトレーニングされていないため、不慣れなカットオフパターンに遭遇すると AudioSR は苦戦します。
 
-![MP3 Cutoff Example](example/figs/mp3.png)
+例えば、MP3 圧縮は以下のようなカットオフパターンを生成します:
 
-### Why This Matters
-As you can see, there are **spectrogram holes** near the cutoff range, which differ significantly from the patterns seen during training. When you apply AudioSR to such data, the output may look like this:
+![MP3 カットオフ例](example/figs/mp3.png)
 
-![AudioSR Output on MP3](example/figs/mp3_after.png)
+### 重要な理由
+カットオフ範囲付近に**スペクトログラムの穴**があり、トレーニング時のパターンとは大きく異なります。このようなデータに AudioSR を適用すると、出力は以下のようになります:
 
-The higher frequencies are not adequately inpainted due to the unfamiliar cutoff pattern.
+![MP3 での AudioSR 出力](example/figs/mp3_after.png)
 
-### A Simple Solution: Low-Pass Filtering
-To mitigate this issue, you can perform a **low-pass filtering** on the audio before feeding it into AudioSR. After low-pass filtering, the audio would resemble a standard low-pass cutoff pattern, like this:
+不慣れなカットオフパターンにより、高周波数が適切に復元されません。
 
-![Low-Pass Filtered Audio](example/figs/lowpass.jpg)
+### 解決策: ローパスフィルタリング
+この問題を軽減するには、AudioSR に入力する前に音声に**ローパスフィルタリング**を適用します。ローパスフィルタリング後の音声は標準的なカットオフパターンに近づきます:
 
-When processed by AudioSR, the output will then be as expected, with improved high-frequency inpainting:
+![ローパスフィルタ適用後](example/figs/lowpass.jpg)
 
-![AudioSR Output on Low-Pass](example/figs/lowpass_after.png)
+AudioSR で処理すると、高周波の復元が改善された期待通りの出力が得られます:
+
+![ローパス後の AudioSR 出力](example/figs/lowpass_after.png)
 
 ---
 
-By understanding the limitations and addressing them with preprocessing, you can maximize the performance of AudioSR!
-
+前処理で制限事項に対処することで、AudioSR の性能を最大限に引き出すことができます。

@@ -27,7 +27,7 @@ class AutoencoderKL(nn.Module):
         sampling_rate=16000,
         ckpt_path=None,
         reload_from_ckpt=None,
-        ignore_keys=[],
+        ignore_keys=None,
         image_key="fbank",
         colorize_nlabels=None,
         monitor=None,
@@ -58,7 +58,7 @@ class AutoencoderKL(nn.Module):
             self.vocoder = get_vocoder(None, "cpu", num_mel)
         self.embed_dim = embed_dim
         if colorize_nlabels is not None:
-            assert type(colorize_nlabels) == int
+            assert isinstance(colorize_nlabels, int)
             self.register_buffer("colorize", torch.randn(3, colorize_nlabels, 1, 1))
         if monitor is not None:
             self.monitor = monitor
@@ -89,8 +89,10 @@ class AutoencoderKL(nn.Module):
         self.logger_save_dir = save_dir
         self.logger_exp_name = exp_name
 
-    def init_from_ckpt(self, path, ignore_keys=list()):
-        sd = torch.load(path, map_location="cpu")["state_dict"]
+    def init_from_ckpt(self, path, ignore_keys=None):
+        if ignore_keys is None:
+            ignore_keys = []
+        sd = torch.load(path, map_location="cpu", weights_only=False)["state_dict"]
         keys = list(sd.keys())
         for k in keys:
             for ik in ignore_keys:

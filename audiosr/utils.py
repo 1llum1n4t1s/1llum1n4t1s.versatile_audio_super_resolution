@@ -112,9 +112,10 @@ def mel_spectrogram_train(y):
     mel_fmin = 20
     mel_fmax = 24000
 
-    if 24000 not in mel_basis:
+    mel_key = str(mel_fmax) + "_" + str(y.device)
+    if mel_key not in mel_basis:
         mel = librosa_mel_fn(sr=sampling_rate, n_fft=filter_length, n_mels=n_mel, fmin=mel_fmin, fmax=mel_fmax)
-        mel_basis[str(mel_fmax) + "_" + str(y.device)] = (
+        mel_basis[mel_key] = (
             torch.from_numpy(mel).float().to(y.device)
         )
         hann_window[str(y.device)] = torch.hann_window(win_length).to(y.device)
@@ -353,12 +354,7 @@ def instantiate_from_config(config):
         elif config == "__is_unconditional__":
             return None
         raise KeyError("Expected key `target` to instantiate.")
-    try:
-        return get_obj_from_str(config["target"])(**config.get("params", dict()))
-    except:
-        import ipdb
-
-        ipdb.set_trace()
+    return get_obj_from_str(config["target"])(**config.get("params", dict()))
 
 
 def default_audioldm_config(model_name="basic"):

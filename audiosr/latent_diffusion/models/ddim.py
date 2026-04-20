@@ -13,15 +13,15 @@ from audiosr.latent_diffusion.modules.diffusionmodules.util import (
 
 
 class DDIMSampler(object):
-    def __init__(self, model, schedule="linear", device=torch.device("cuda"), **kwargs):
+    def __init__(self, model, schedule="linear", device=None, **kwargs):
         super().__init__()
         self.model = model
         self.ddpm_num_timesteps = model.num_timesteps
         self.schedule = schedule
-        self.device = device
+        self.device = device if device is not None else model.device
 
     def register_buffer(self, name, attr):
-        if type(attr) == torch.Tensor:
+        if isinstance(attr, torch.Tensor):
             if attr.device != self.device:
                 is_mps = self.device == "mps" or self.device == torch.device("mps")
                 if is_mps and attr.dtype == torch.float64:
